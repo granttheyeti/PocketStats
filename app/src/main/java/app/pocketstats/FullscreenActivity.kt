@@ -6,12 +6,14 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowInsets
 import android.widget.LinearLayout
 import android.widget.TextView
 import app.pocketstats.databinding.ActivityFullscreenBinding
+import kotlin.math.roundToInt
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -68,6 +70,14 @@ class FullscreenActivity : AppCompatActivity() {
         false
     }
 
+    private var ups = 0
+    private var downs = 0
+    private var ups2 = 0
+    private var downs2 = 0
+    private var lastKeyEvent: Int? = null
+    private var lastUpTime = System.nanoTime()
+    private var lastDownTime = System.nanoTime()
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,7 +85,7 @@ class FullscreenActivity : AppCompatActivity() {
         binding = ActivityFullscreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+//        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         isFullscreen = true
 
@@ -89,7 +99,53 @@ class FullscreenActivity : AppCompatActivity() {
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         binding.dummyButton.setOnTouchListener(delayHideTouchListener)
+        binding.dummyButton.setOnClickListener { v ->
+            run {
+                ups = 0
+                downs = 0
+                ups2 = 0
+                downs2 = 0
+                lastKeyEvent = null
+                lastUpTime = System.nanoTime()
+                lastDownTime = System.nanoTime()
+                binding.fullscreenContent.text = getText(R.string.dummy_content)
+            }
+        }
     }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        val nanoTime = System.nanoTime()
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            if (lastKeyEvent == KeyEvent.KEYCODE_VOLUME_DOWN && nanoTime - lastDownTime < 1000000000) {
+                downs2 = downs2.inc()
+                downs= downs.dec()
+                lastKeyEvent = null
+            } else {
+                downs = downs.inc()
+                lastKeyEvent = KeyEvent.KEYCODE_VOLUME_DOWN
+            }
+            lastDownTime = nanoTime
+        }
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            if (lastKeyEvent == KeyEvent.KEYCODE_VOLUME_UP && nanoTime - lastUpTime < 1000000000) {
+                ups2 = ups2.inc()
+                ups = ups.dec()
+                lastKeyEvent = null
+            } else {
+                ups = ups.inc()
+                lastKeyEvent = KeyEvent.KEYCODE_VOLUME_UP
+            }
+            lastUpTime = nanoTime
+        }
+        binding.fullscreenContent.setText("2Pt\nMakes: $ups, Misses: $downs, ${if (ups > 0 || downs > 0) ups.toDouble().div(ups.plus(downs)).times(100).roundToInt() else 0}%\n\n3Pt\nMakes: $ups2, Misses: $downs2, ${if (ups2 > 0 || downs2 > 0) ups2.toDouble().div(ups2.plus(downs2)).times(100).roundToInt() else 0}%" +
+                "\n\n" +
+                "Total: ${
+                    if (ups > 0 || downs > 0 || ups2 > 0 || downs2 > 0) ups.plus(ups2).toDouble().div(ups.plus(downs).plus(ups2).plus(downs2)).times(100)
+                        .roundToInt() else 0
+                }%")
+        return true
+    }
+
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
         super.onPostCreate(savedInstanceState)
