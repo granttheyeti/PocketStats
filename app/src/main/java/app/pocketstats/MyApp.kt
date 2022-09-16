@@ -1,23 +1,36 @@
 package app.pocketstats
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.pocketstats.ui.theme.PocketStatsTheme
+import app.pocketstats.ui.theme.Typography
 import kotlin.math.roundToInt
 
 @Composable
@@ -52,7 +65,6 @@ fun MyApp(dateModel: DataViewModel = viewModel()) {
                     ups2 = threesMade!!,
                     downs2 = threesMissed!!
                 )
-                Spacer(modifier = Modifier.height(32.dp))
                 Button(onClick = { dateModel.resetAll() }) {
                     Text(text = "Reset Values")
                 }
@@ -65,8 +77,7 @@ fun MyApp(dateModel: DataViewModel = viewModel()) {
 fun Logo() {
     Row(
         verticalAlignment = Alignment.CenterVertically, modifier = Modifier
-//        .fillMaxWidth()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp, vertical = 24.dp)
     ) {
         Card(
             modifier = Modifier.size(80.dp),
@@ -113,21 +124,131 @@ fun StatLine(success: Int, failure: Int, metric: String) {
     val percent =
         if (success > 0 || failure > 0) success.toDouble().div(success.plus(failure)).times(100)
             .roundToInt() else 0
-    Card(modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp)) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(success.toString(), fontSize = 70.sp, modifier = Modifier.padding(start = 24.dp))
+            val s = 120.dp
+            Box(
+                Modifier
+                    .size(s)
+                    .padding(10.dp), contentAlignment = Alignment.Center
+            ) {
+                DoughnutChart(
+                    values = listOf(success.toFloat(), failure.toFloat()), colors = listOf(
+                        Color.Red, Color.Cyan
+                    ), size = s, thickness = 8.dp
+                )
+                AutosizeText(
+                    success.toString(), 70.sp, Modifier
+                        .padding(horizontal = 16.dp)
+                )
+            }
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp)
             ) {
-                Text("$success / $total = $percent%", fontSize = 14.sp)
+                Text(
+                    buildAnnotatedString {
+                        append("$success / $total = ")
+
+                        withStyle(
+                            style = SpanStyle(
+                                fontWeight = FontWeight.Bold,
+                                shadow = Shadow(
+                                    color = getShadow(percent),
+                                    blurRadius = 2f
+                                )
+                            )
+                        ) {
+                            append("$percent%")
+                        }
+                    }, fontSize = 16.sp
+                )
                 Text(metric, fontSize = 30.sp, fontStyle = FontStyle.Italic)
             }
         }
     }
     Spacer(modifier = Modifier.height(32.dp))
+}
+
+fun getShadow(percent: Int): Color {
+    return when {
+        percent < 30 -> Color.Cyan
+        percent < 60 -> Color.Yellow
+        else -> Color.Red
+    }
+}
+
+@Composable
+fun AutosizeText(text: String, targetSize: TextUnit, modifier: Modifier) {
+    val textStyleBodyLarge = Typography.bodyLarge.copy(fontSize = targetSize)
+    var textStyle by remember(text) { mutableStateOf(textStyleBodyLarge) }
+    var readyToDraw by remember(text) { mutableStateOf(false) }
+    Text(
+        text,
+        style = textStyle,
+        maxLines = 1,
+        softWrap = false,
+        modifier = modifier.drawWithContent {
+            if (readyToDraw) drawContent()
+        },
+        onTextLayout = {
+            if (it.didOverflowWidth || it.didOverflowHeight) {
+                textStyle = textStyle.copy(fontSize = textStyle.fontSize * 0.9)
+            } else {
+                readyToDraw = true
+            }
+        },
+        textAlign = TextAlign.Center,
+    )
+}
+
+@Composable
+fun DoughnutChart(
+    values: List<Float> = listOf(1f, 1f),
+    colors: List<Color> = listOf(
+        Color.Red, Color.Blue
+    ),
+    size: Dp = 200.dp,
+    thickness: Dp = 36.dp
+) {
+
+    // Sum of all the values
+    val sumOfValues = values.sum()
+
+    // Calculate each proportion
+    val proportions = values.map {
+        it / sumOfValues
+    }
+
+    // Convert each proportion to angle
+    val sweepAngles = proportions.map {
+        360 * it
+    }
+
+    Canvas(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(size.times(0.05f))
+    ) {
+        var startAngle = 90f
+
+        for (i in values.indices) {
+            drawArc(
+                color = colors[i],
+                startAngle = startAngle,
+                sweepAngle = sweepAngles[i],
+                useCenter = false,
+                style = Stroke(width = thickness.toPx(), cap = StrokeCap.Square),
+            )
+            startAngle += sweepAngles[i]
+        }
+    }
 }
 
 @Preview(showBackground = true)
