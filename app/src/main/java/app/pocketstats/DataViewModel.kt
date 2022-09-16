@@ -65,6 +65,7 @@ class DataViewModel : ViewModel() {
         _twosMissed.value = 0
         _threesMade.value = 0
         _threesMissed.value = 0
+        _lastKeyEvent.value = 0
         _lastMakeTime.value = System.nanoTime()
         _lastMissTime.value = System.nanoTime()
     }
