@@ -19,7 +19,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
@@ -29,8 +30,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import app.pocketstats.ui.theme.PocketStatsTheme
-import app.pocketstats.ui.theme.Typography
+import app.pocketstats.ui.theme.*
 import kotlin.math.roundToInt
 
 @Composable
@@ -79,16 +79,11 @@ fun Logo() {
         verticalAlignment = Alignment.CenterVertically, modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 24.dp)
     ) {
-        Card(
+        Image(
+            painter = painterResource(id = R.mipmap.ic_launcher),
+            contentDescription = null,
             modifier = Modifier.size(80.dp),
-            shape = CircleShape,
-        ) {
-            Image(
-                painter = painterResource(id = R.mipmap.ic_launcher),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+        )
         Text("Pocket Stats", fontSize = 40.sp, modifier = Modifier.padding(horizontal = 8.dp))
     }
 }
@@ -112,9 +107,9 @@ fun Tutorial() {
 @Composable
 fun Stats(ups: Int, downs: Int, ups2: Int, downs2: Int) {
     Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
-        StatLine(ups, downs, "TWOS MADE")
-        StatLine(ups2, downs2, "THREES MADE")
-        StatLine(ups + ups2, downs + downs2, "FIELD GOALS")
+        StatLine(ups, downs, "Twos made")
+        StatLine(ups2, downs2, "Threes made")
+        StatLine(ups + ups2, downs + downs2, "Field goals")
     }
 }
 
@@ -124,10 +119,10 @@ fun StatLine(success: Int, failure: Int, metric: String) {
     val percent =
         if (success > 0 || failure > 0) success.toDouble().div(success.plus(failure)).times(100)
             .roundToInt() else 0
-    Card(
+    ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             val s = 120.dp
@@ -138,7 +133,7 @@ fun StatLine(success: Int, failure: Int, metric: String) {
             ) {
                 DoughnutChart(
                     values = listOf(success.toFloat(), failure.toFloat()), colors = listOf(
-                        Color.Red, Color.Cyan
+                        ShootingWellColor, ShootingPoorlyColor
                     ), size = s, thickness = 8.dp
                 )
                 AutosizeText(
@@ -169,7 +164,7 @@ fun StatLine(success: Int, failure: Int, metric: String) {
                         }
                     }, fontSize = 16.sp
                 )
-                Text(metric, fontSize = 30.sp, fontStyle = FontStyle.Italic)
+                Text(metric, fontSize = 40.sp, fontFamily = FontFamily(Font(R.font.bebasneue_regular, FontWeight.Normal)))
             }
         }
     }
@@ -178,9 +173,9 @@ fun StatLine(success: Int, failure: Int, metric: String) {
 
 fun getShadow(percent: Int): Color {
     return when {
-        percent < 30 -> Color.Cyan
-        percent < 60 -> Color.Yellow
-        else -> Color.Red
+        percent < 30 -> ShootingPoorlyColor
+        percent < 60 -> ShootingOkColor
+        else -> ShootingWellColor
     }
 }
 
@@ -210,12 +205,10 @@ fun AutosizeText(text: String, targetSize: TextUnit, modifier: Modifier) {
 
 @Composable
 fun DoughnutChart(
-    values: List<Float> = listOf(1f, 1f),
-    colors: List<Color> = listOf(
-        Color.Red, Color.Blue
-    ),
-    size: Dp = 200.dp,
-    thickness: Dp = 36.dp
+    values: List<Float>,
+    colors: List<Color>,
+    size: Dp,
+    thickness: Dp
 ) {
 
     // Sum of all the values
