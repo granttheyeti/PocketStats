@@ -4,7 +4,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -58,14 +57,14 @@ fun MyApp(dateModel: DataViewModel = viewModel()) {
                 Tutorial()
                 Spacer(modifier = Modifier.height(16.dp))
                 Divider()
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 Stats(
                     ups = twosMade!!,
                     downs = twosMissed!!,
                     ups2 = threesMade!!,
                     downs2 = threesMissed!!
                 )
-                Button(onClick = { dateModel.resetAll() }) {
+                Button(onClick = { dateModel.resetAll() }, Modifier.padding(vertical = 12.dp)) {
                     Text(text = "Reset Values")
                 }
             }
@@ -90,16 +89,14 @@ fun Logo() {
 
 @Composable
 fun Tutorial() {
-    val s = 12.sp
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text("Tutorial")
-        Spacer(modifier = Modifier.width(16.dp))
+        Text("Tutorial", Modifier.padding(horizontal = 12.dp))
         Column() {
-            Text("2 Pointer Made -> Press Volume Up", fontSize = s)
-            Text("2 Pointer Missed -> Press Volume Down", fontSize = s)
-            Text("3 Pointer Made -> Press Volume Up Twice", fontSize = s)
-            Text("3 Pointer Missed -> Press Volume Down Twice", fontSize = s)
-            Text("The screen will stay on until you exit the app", fontSize = s)
+            Text(
+                "2 Pointer Made -> Press Volume Up\n2 Pointer Missed -> Press Volume Down\n3 Pointer Made -> Press Volume Up Twice\n3 Pointer Missed -> Press Volume Down Twice\nThe screen will stay on until you exit the app",
+                fontSize = 12.sp,
+                lineHeight = 14.sp
+            )
         }
     }
 }
@@ -108,7 +105,9 @@ fun Tutorial() {
 fun Stats(ups: Int, downs: Int, ups2: Int, downs2: Int) {
     Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
         StatLine(ups, downs, "Twos made")
+        Spacer(modifier = Modifier.height(24.dp))
         StatLine(ups2, downs2, "Threes made")
+        Spacer(modifier = Modifier.height(24.dp))
         StatLine(ups + ups2, downs + downs2, "Field goals")
     }
 }
@@ -164,11 +163,14 @@ fun StatLine(success: Int, failure: Int, metric: String) {
                         }
                     }, fontSize = 16.sp
                 )
-                Text(metric, fontSize = 40.sp, fontFamily = FontFamily(Font(R.font.bebasneue_regular, FontWeight.Normal)))
+                Text(
+                    metric,
+                    fontSize = 40.sp,
+                    fontFamily = FontFamily(Font(R.font.bebasneue_regular, FontWeight.Normal))
+                )
             }
         }
     }
-    Spacer(modifier = Modifier.height(32.dp))
 }
 
 fun getShadow(percent: Int): Color {
@@ -247,7 +249,15 @@ fun DoughnutChart(
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
+    val vm = DataViewModel()
+    vm.threesMadeInc()
+    vm.threesMadeInc()
+    vm.threesMissedInc()
+    vm.twosMadeInc()
+    vm.twosMissedInc()
+    vm.twosMissedInc()
+    vm.twosMissedInc()
     PocketStatsTheme {
-        MyApp()
+        MyApp(vm)
     }
 }
