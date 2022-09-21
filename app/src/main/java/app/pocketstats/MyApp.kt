@@ -5,6 +5,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -22,6 +25,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -30,80 +34,145 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.pocketstats.ui.theme.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyApp(dateModel: DataViewModel = viewModel()) {
-    val twosMade by dateModel.twosMade.observeAsState()
-    val twosMissed by dateModel.twosMissed.observeAsState()
-    val threesMade by dateModel.threesMade.observeAsState()
-    val threesMissed by dateModel.threesMissed.observeAsState()
+fun MyApp(viewModel: DataViewModel = viewModel()) {
+    val twosMade by viewModel.twosMade.observeAsState()
+    val twosMissed by viewModel.twosMissed.observeAsState()
+    val threesMade by viewModel.threesMade.observeAsState()
+    val threesMissed by viewModel.threesMissed.observeAsState()
 
     PocketStatsTheme {
-        // A surface container using the 'background' color from the theme
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                Logo()
-                Divider()
-                Spacer(modifier = Modifier.height(16.dp))
-                Tutorial()
-                Spacer(modifier = Modifier.height(16.dp))
-                Divider()
-                Spacer(modifier = Modifier.height(16.dp))
-                Stats(
-                    ups = twosMade!!,
-                    downs = twosMissed!!,
-                    ups2 = threesMade!!,
-                    downs2 = threesMissed!!
-                )
-                Button(onClick = { dateModel.resetAll() }, Modifier.padding(vertical = 12.dp)) {
-                    Text(text = "Reset Values")
+        val showInstructions = remember { mutableStateOf(false) }
+        val snackbarHostState = remember { SnackbarHostState() }
+        val scope = rememberCoroutineScope()
+        Scaffold(
+            topBar = {
+                TopAppBar(title = { InlineLogo() }, actions = {
+                    InstructionsButton(showInstructions)
+                    ResetButton(viewModel, snackbarHostState, scope)
+                })
+            },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            content = { innerPadding ->
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                    ) {
+                        if (showInstructions.value) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Instructions()
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Divider()
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Stats(
+                            ups = twosMade!!,
+                            downs = twosMissed!!,
+                            ups2 = threesMade!!,
+                            downs2 = threesMissed!!
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
-        }
+        )
     }
 }
 
 @Composable
-fun Logo() {
-    Row(
-        verticalAlignment = Alignment.CenterVertically, modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 24.dp)
+fun InstructionsButton(showInstructions: MutableState<Boolean>) {
+    IconButton(
+        onClick = { showInstructions.value = !showInstructions.value },
     ) {
+        Icon(
+            Icons.Default.Info,
+            contentDescription = "Instructions"
+        )
+    }
+}
+
+@Composable
+fun ResetButton(
+    viewModel: DataViewModel,
+    snackbarHostState: SnackbarHostState,
+    scope: CoroutineScope
+) {
+    val s = "Reset Counters"
+    IconButton(
+        onClick = {
+            scope.launch {
+                val snackbarResult = snackbarHostState.showSnackbar(
+                    "Are you sure?",
+                    s,
+                    false,
+                    SnackbarDuration.Short
+                )
+                if (snackbarResult == SnackbarResult.ActionPerformed) viewModel.resetAll()
+            }
+        },
+    ) {
+        Icon(
+            Icons.Filled.Refresh,
+            contentDescription = "s"
+        )
+    }
+}
+
+@Composable
+fun InlineLogo() {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         Image(
             painter = painterResource(id = R.mipmap.ic_launcher),
             contentDescription = null,
-            modifier = Modifier.size(80.dp),
+            modifier = Modifier.size(56.dp),
         )
-        Text("Pocket Stats", fontSize = 40.sp, modifier = Modifier.padding(horizontal = 8.dp))
+        AutosizeText(
+            "Pocket Stats",
+            targetSize = 40.sp,
+            modifier = Modifier.padding(start = 8.dp),
+            textAlign = TextAlign.Start
+        )
     }
 }
 
 @Composable
-fun Tutorial() {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text("Tutorial", Modifier.padding(horizontal = 12.dp))
-        Column() {
-            Text(
-                "2 Pointer Made -> Press Volume Up\n2 Pointer Missed -> Press Volume Down\n3 Pointer Made -> Press Volume Up Twice\n3 Pointer Missed -> Press Volume Down Twice\nThe screen will stay on until you exit the app",
-                fontSize = 12.sp,
-                lineHeight = 14.sp
-            )
-        }
+fun Instructions() {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(horizontal = 8.dp)
+    ) {
+        Text("Instructions", fontSize = 24.sp, textDecoration = TextDecoration.Underline)
+        Spacer(modifier = Modifier.padding(vertical = 4.dp))
+        Text(
+            "2 Pt Made   -> Volume Up\n2 Pt Missed -> Volume Down\n3 Pt Made   -> Volume Up 2x\n3 Pt Missed -> Volume Down 2x",
+            fontSize = 14.sp,
+            fontFamily = FontFamily.Monospace,
+            lineHeight = 16.sp
+        )
+        Spacer(modifier = Modifier.padding(vertical = 4.dp))
+        Text("The screen will stay on until you exit the app", textAlign = TextAlign.Center)
     }
 }
 
 @Composable
 fun Stats(ups: Int, downs: Int, ups2: Int, downs2: Int) {
-    Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
+    Column(
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier.fillMaxWidth()
+    ) {
         StatLine(ups, downs, "Twos made")
         Spacer(modifier = Modifier.height(24.dp))
         StatLine(ups2, downs2, "Threes made")
@@ -182,7 +251,12 @@ fun getShadow(percent: Int): Color {
 }
 
 @Composable
-fun AutosizeText(text: String, targetSize: TextUnit, modifier: Modifier) {
+fun AutosizeText(
+    text: String,
+    targetSize: TextUnit,
+    modifier: Modifier,
+    textAlign: TextAlign = TextAlign.Center
+) {
     val textStyleBodyLarge = Typography.bodyLarge.copy(fontSize = targetSize)
     var textStyle by remember(text) { mutableStateOf(textStyleBodyLarge) }
     var readyToDraw by remember(text) { mutableStateOf(false) }
@@ -201,7 +275,7 @@ fun AutosizeText(text: String, targetSize: TextUnit, modifier: Modifier) {
                 readyToDraw = true
             }
         },
-        textAlign = TextAlign.Center,
+        textAlign = textAlign,
     )
 }
 
