@@ -23,6 +23,16 @@ class FullscreenActivity : ComponentActivity() {
         hideSystemUI()
     }
 
+    override fun onResume() {
+        super.onResume()
+        dataViewModel.startTimer()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        dataViewModel.stopTimer()
+    }
+
     private fun hideSystemUI() {
         window.insetsController?.apply {
             hide(WindowInsets.Type.systemBars())

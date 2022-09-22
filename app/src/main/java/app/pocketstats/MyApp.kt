@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
@@ -45,6 +46,7 @@ fun MyApp(viewModel: DataViewModel = viewModel()) {
     val twosMissed by viewModel.twosMissed.observeAsState()
     val threesMade by viewModel.threesMade.observeAsState()
     val threesMissed by viewModel.threesMissed.observeAsState()
+    val seconds by viewModel.seconds.observeAsState()
 
     PocketStatsTheme {
         val showInstructions = remember { mutableStateOf(false) }
@@ -82,7 +84,8 @@ fun MyApp(viewModel: DataViewModel = viewModel()) {
                             ups = twosMade!!,
                             downs = twosMissed!!,
                             ups2 = threesMade!!,
-                            downs2 = threesMissed!!
+                            downs2 = threesMissed!!,
+                            seconds = seconds!!
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }
@@ -164,11 +167,12 @@ fun Instructions() {
         )
         Spacer(modifier = Modifier.padding(vertical = 4.dp))
         Text("The screen will stay on until you exit the app", textAlign = TextAlign.Center)
+        Text("The timer only pauses when you leave the app", textAlign = TextAlign.Center)
     }
 }
 
 @Composable
-fun Stats(ups: Int, downs: Int, ups2: Int, downs2: Int) {
+fun Stats(ups: Int, downs: Int, ups2: Int, downs2: Int, seconds: Int) {
     Column(
         horizontalAlignment = Alignment.Start,
         modifier = Modifier.fillMaxWidth()
@@ -178,15 +182,46 @@ fun Stats(ups: Int, downs: Int, ups2: Int, downs2: Int) {
         StatLine(ups2, downs2, "Threes made")
         Spacer(modifier = Modifier.height(24.dp))
         StatLine(ups + ups2, downs + downs2, "Field goals")
+        Spacer(modifier = Modifier.height(24.dp))
+        TimeLine(seconds, downs + downs2 + ups + ups2, "Minutes Played")
     }
 }
 
 @Composable
-fun StatLine(success: Int, failure: Int, metric: String) {
-    val total = success + failure
-    val percent =
-        if (success > 0 || failure > 0) success.toDouble().div(success.plus(failure)).times(100)
-            .roundToInt() else 0
+fun TimeLine(seconds: Int, shots: Int, metric: String) {
+    val secondsPerShot =
+        if (seconds > 0 && shots > 0) seconds.toDouble().div(shots).roundToInt() else 0
+    val clockSeconds = seconds.mod(60)
+    val annotatedString = buildAnnotatedString {
+        append(if (secondsPerShot == 0) "0 shot per " else "1 shot per ")
+        withStyle(
+            style = SpanStyle(
+                fontWeight = FontWeight.Bold,
+            )
+        ) {
+            append("$secondsPerShot")
+        }
+        append(" seconds")
+    }
+    GenericLine(
+        bigNumberString = seconds.div(60).toString(),
+        metric = metric,
+        values = listOf(clockSeconds.toFloat(), 60.minus(clockSeconds).toFloat()),
+        colors = if (seconds.mod(120) < 60) listOf(
+            Color.White, Color.Black
+        ) else listOf(
+            Color.Black, Color.White
+        ),
+        annotatedString = annotatedString,
+        startAngle = -90f
+    )
+}
+
+@Composable
+fun GenericLine(
+    bigNumberString: String, metric: String, values: List<Float>,
+    colors: List<Color>, annotatedString: AnnotatedString, startAngle: Float
+) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -200,12 +235,14 @@ fun StatLine(success: Int, failure: Int, metric: String) {
                     .padding(10.dp), contentAlignment = Alignment.Center
             ) {
                 DoughnutChart(
-                    values = listOf(success.toFloat(), failure.toFloat()), colors = listOf(
-                        ShootingWellColor, ShootingPoorlyColor
-                    ), size = s, thickness = 8.dp
+                    values = values,
+                    colors = colors,
+                    size = s,
+                    thickness = 8.dp,
+                    startAngle = startAngle
                 )
                 AutosizeText(
-                    success.toString(), 70.sp, Modifier
+                    bigNumberString, 70.sp, Modifier
                         .padding(horizontal = 16.dp)
                 )
             }
@@ -215,23 +252,7 @@ fun StatLine(success: Int, failure: Int, metric: String) {
                     .fillMaxWidth()
                     .padding(horizontal = 4.dp)
             ) {
-                Text(
-                    buildAnnotatedString {
-                        append("$success / $total = ")
-
-                        withStyle(
-                            style = SpanStyle(
-                                fontWeight = FontWeight.Bold,
-                                shadow = Shadow(
-                                    color = getShadow(percent),
-                                    blurRadius = 2f
-                                )
-                            )
-                        ) {
-                            append("$percent%")
-                        }
-                    }, fontSize = 16.sp
-                )
+                Text(annotatedString, fontSize = 16.sp)
                 Text(
                     metric,
                     fontSize = 40.sp,
@@ -240,6 +261,39 @@ fun StatLine(success: Int, failure: Int, metric: String) {
             }
         }
     }
+}
+
+@Composable
+fun StatLine(success: Int, failure: Int, metric: String) {
+    val total = success + failure
+    val percent =
+        if (success > 0 || failure > 0) success.toDouble().div(success.plus(failure)).times(100)
+            .roundToInt() else 0
+    val annotatedString = buildAnnotatedString {
+        append("$success / $total = ")
+
+        withStyle(
+            style = SpanStyle(
+                fontWeight = FontWeight.Bold,
+                shadow = Shadow(
+                    color = getShadow(percent),
+                    blurRadius = 2f
+                )
+            )
+        ) {
+            append("$percent%")
+        }
+    }
+    GenericLine(
+        bigNumberString = success.toString(),
+        metric = metric,
+        values = listOf(success.toFloat(), failure.toFloat()),
+        colors = listOf(
+            ShootingWellColor, ShootingPoorlyColor
+        ),
+        annotatedString = annotatedString,
+        startAngle = 90f
+    )
 }
 
 fun getShadow(percent: Int): Color {
@@ -284,7 +338,8 @@ fun DoughnutChart(
     values: List<Float>,
     colors: List<Color>,
     size: Dp,
-    thickness: Dp
+    thickness: Dp,
+    startAngle: Float
 ) {
 
     // Sum of all the values
@@ -305,17 +360,17 @@ fun DoughnutChart(
             .fillMaxSize()
             .padding(size.times(0.05f))
     ) {
-        var startAngle = 90f
+        var startDrawingAngle = startAngle
 
         for (i in values.indices) {
             drawArc(
                 color = colors[i],
-                startAngle = startAngle,
+                startAngle = startDrawingAngle,
                 sweepAngle = sweepAngles[i],
                 useCenter = false,
                 style = Stroke(width = thickness.toPx(), cap = StrokeCap.Square),
             )
-            startAngle += sweepAngles[i]
+            startDrawingAngle += sweepAngles[i]
         }
     }
 }

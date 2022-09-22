@@ -3,9 +3,28 @@ package app.pocketstats
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import java.util.*
 
 
 class DataViewModel : ViewModel() {
+    private val _seconds = MutableLiveData(0)
+    val seconds: LiveData<Int> = _seconds
+    private var timer: Timer? = null
+    fun startTimer() {
+        timer = Timer().apply {
+            val task = object : TimerTask() {
+                override fun run() {
+                    _seconds.postValue(_seconds.value?.inc())
+                }
+            }
+            scheduleAtFixedRate(task, 1000L, 1000L)
+        }
+    }
+
+    fun stopTimer() {
+        timer?.cancel()
+    }
+
     private val _twosMade = MutableLiveData(0)
     val twosMade: LiveData<Int> = _twosMade
     fun twosMadeInc() {
@@ -66,6 +85,7 @@ class DataViewModel : ViewModel() {
         _threesMade.value = 0
         _threesMissed.value = 0
         _lastKeyEvent.value = 0
+        _seconds.value = 0
         _lastMakeTime.value = System.nanoTime()
         _lastMissTime.value = System.nanoTime()
     }
