@@ -10,7 +10,6 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -42,11 +41,11 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyApp(viewModel: DataViewModel = viewModel()) {
-    val twosMade by viewModel.twosMade.observeAsState()
-    val twosMissed by viewModel.twosMissed.observeAsState()
-    val threesMade by viewModel.threesMade.observeAsState()
-    val threesMissed by viewModel.threesMissed.observeAsState()
-    val seconds by viewModel.seconds.observeAsState()
+    val twosMade by viewModel.twosMade.collectAsState()
+    val twosMissed by viewModel.twosMissed.collectAsState()
+    val threesMade by viewModel.threesMade.collectAsState()
+    val threesMissed by viewModel.threesMissed.collectAsState()
+    val seconds by viewModel.seconds.collectAsState()
 
     PocketStatsTheme {
         val showInstructions = remember { mutableStateOf(false) }
