@@ -204,7 +204,7 @@ fun TimeLine(seconds: Int, shots: Int, metric: String) {
                 fontWeight = FontWeight.Bold,
             )
         ) {
-            append("$secondsPerShot")
+            append(" $secondsPerShot ")
         }
         append(stringResource(R.string.seconds))
     }
