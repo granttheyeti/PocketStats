@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -80,11 +81,11 @@ fun MyApp(viewModel: DataViewModel = viewModel()) {
                         }
                         Spacer(modifier = Modifier.height(24.dp))
                         Stats(
-                            ups = twosMade!!,
-                            downs = twosMissed!!,
-                            ups2 = threesMade!!,
-                            downs2 = threesMissed!!,
-                            seconds = seconds!!
+                            ups = twosMade,
+                            downs = twosMissed,
+                            ups2 = threesMade,
+                            downs2 = threesMissed,
+                            seconds = seconds
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }
@@ -101,7 +102,7 @@ fun InstructionsButton(showInstructions: MutableState<Boolean>) {
     ) {
         Icon(
             Icons.Default.Info,
-            contentDescription = "Instructions"
+            contentDescription = stringResource(R.string.instructions_button_content_description)
         )
     }
 }
@@ -112,12 +113,13 @@ fun ResetButton(
     snackbarHostState: SnackbarHostState,
     scope: CoroutineScope
 ) {
-    val s = "Reset Counters"
+    val s = stringResource(R.string.reset_message)
+    val c = stringResource(R.string.reset_confirmation)
     IconButton(
         onClick = {
             scope.launch {
                 val snackbarResult = snackbarHostState.showSnackbar(
-                    "Are you sure?",
+                    c,
                     s,
                     false,
                     SnackbarDuration.Short
@@ -128,7 +130,7 @@ fun ResetButton(
     ) {
         Icon(
             Icons.Filled.Refresh,
-            contentDescription = "s"
+            contentDescription = s
         )
     }
 }
@@ -142,7 +144,7 @@ fun InlineLogo() {
             modifier = Modifier.size(56.dp),
         )
         AutosizeText(
-            "Pocket Stats",
+            stringResource(R.string.app_name),
             targetSize = 40.sp,
             modifier = Modifier.padding(start = 8.dp),
             textAlign = TextAlign.Start
@@ -156,17 +158,21 @@ fun Instructions() {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(horizontal = 8.dp)
     ) {
-        Text("Instructions", fontSize = 24.sp, textDecoration = TextDecoration.Underline)
+        Text(
+            stringResource(R.string.instructions_title),
+            fontSize = 24.sp,
+            textDecoration = TextDecoration.Underline
+        )
         Spacer(modifier = Modifier.padding(vertical = 4.dp))
         Text(
-            "2 Pt Made   -> Volume Up\n2 Pt Missed -> Volume Down\n3 Pt Made   -> Volume Up 2x\n3 Pt Missed -> Volume Down 2x",
+            stringResource(R.string.instructions_key_map),
             fontSize = 14.sp,
             fontFamily = FontFamily.Monospace,
             lineHeight = 16.sp
         )
         Spacer(modifier = Modifier.padding(vertical = 4.dp))
-        Text("The screen will stay on until you exit the app", textAlign = TextAlign.Center)
-        Text("The timer only pauses when you leave the app", textAlign = TextAlign.Center)
+        Text(stringResource(R.string.instructions_screen_info), textAlign = TextAlign.Center)
+        Text(stringResource(R.string.instructions_timer_info), textAlign = TextAlign.Center)
     }
 }
 
@@ -176,13 +182,13 @@ fun Stats(ups: Int, downs: Int, ups2: Int, downs2: Int, seconds: Int) {
         horizontalAlignment = Alignment.Start,
         modifier = Modifier.fillMaxWidth()
     ) {
-        StatLine(ups, downs, "Twos made")
+        StatLine(ups, downs, stringResource(R.string.metric_two))
         Spacer(modifier = Modifier.height(24.dp))
-        StatLine(ups2, downs2, "Threes made")
+        StatLine(ups2, downs2, stringResource(R.string.metric_three))
         Spacer(modifier = Modifier.height(24.dp))
-        StatLine(ups + ups2, downs + downs2, "Field goals")
+        StatLine(ups + ups2, downs + downs2, stringResource(R.string.metric_combined))
         Spacer(modifier = Modifier.height(24.dp))
-        TimeLine(seconds, downs + downs2 + ups + ups2, "Minutes Played")
+        TimeLine(seconds, downs + downs2 + ups + ups2, stringResource(R.string.metric_time))
     }
 }
 
@@ -192,7 +198,7 @@ fun TimeLine(seconds: Int, shots: Int, metric: String) {
         if (seconds > 0 && shots > 0) seconds.toDouble().div(shots).roundToInt() else 0
     val clockSeconds = seconds.mod(60)
     val annotatedString = buildAnnotatedString {
-        append(if (secondsPerShot == 0) "0 shot per " else "1 shot per ")
+        append(if (secondsPerShot == 0) stringResource(R.string.zero_shot_per) else stringResource(R.string.one_shot_per))
         withStyle(
             style = SpanStyle(
                 fontWeight = FontWeight.Bold,
@@ -200,7 +206,7 @@ fun TimeLine(seconds: Int, shots: Int, metric: String) {
         ) {
             append("$secondsPerShot")
         }
-        append(" seconds")
+        append(stringResource(R.string.seconds))
     }
     GenericLine(
         bigNumberString = seconds.div(60).toString(),

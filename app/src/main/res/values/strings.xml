@@ -1,5 +1,17 @@
 <resources>
     <string name="app_name">Pocket Stats</string>
-    <string name="dummy_button">Reset</string>
-    <string name="dummy_content">Volume up is make, volume down is miss. Double clicking is 3 pointers</string>
+    <string name="reset_message">Reset Counters</string>
+    <string name="reset_confirmation">Are you sure?</string>
+    <string name="instructions_button_content_description">Instructions</string>
+    <string name="instructions_title">Instructions</string>
+    <string name="instructions_key_map">"2 Pt Made   -> Volume Up\n2 Pt Missed -> Volume Down\n3 Pt Made   -> Volume Up 2x\n3 Pt Missed -> Volume Down 2x"</string>
+    <string name="instructions_screen_info">The screen will stay on until you exit the app</string>
+    <string name="instructions_timer_info">The timer only pauses when you leave the app</string>
+    <string name="metric_two">Twos made</string>
+    <string name="metric_three">Threes made</string>
+    <string name="metric_combined">Field goals</string>
+    <string name="metric_time">Minutes Played</string>
+    <string name="zero_shot_per">\"0 shot per \"</string>
+    <string name="one_shot_per">\"1 shot per \"</string>
+    <string name="seconds">\" seconds\"</string>
 </resources>
