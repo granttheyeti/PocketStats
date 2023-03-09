@@ -13,4 +13,5 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "Pocket Stats"
-include ':app'
+include ':app:mobile'
+include ':app:wear'
