@@ -1,5 +1,6 @@
 package app.pocketstats
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -73,11 +74,13 @@ fun MyApp(viewModel: DataViewModel = viewModel()) {
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState()),
                     ) {
-                        if (showInstructions.value) {
+                        AnimatedVisibility(
+                            modifier = Modifier.fillMaxSize(),
+                            visible = showInstructions.value
+                        ) {
                             Spacer(modifier = Modifier.height(16.dp))
                             Instructions()
                             Spacer(modifier = Modifier.height(16.dp))
-                            Divider()
                         }
                         Spacer(modifier = Modifier.height(24.dp))
                         Stats(

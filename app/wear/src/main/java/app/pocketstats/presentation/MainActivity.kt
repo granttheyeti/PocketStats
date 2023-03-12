@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -83,7 +84,7 @@ fun WearApp(dataViewModel: DataViewModel) {
                     color = MaterialTheme.colors.primary,
                     text = "$upState makes, $downState misses"
                 )
-                if (upState + downState > 0) {
+                AnimatedVisibility(upState + downState > 0) {
                     Text(
                         modifier = Modifier
                             .fillMaxWidth(),
