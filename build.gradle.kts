@@ -1,5 +1,6 @@
 val compose_version by extra("1.4.0-beta02")
 val wear_compose_version by extra("1.2.0-alpha05")
+// see https://docs.gradle.org/current/userguide/writing_build_scripts.html#sec:extra_properties
 
 plugins {
     id("com.android.application") version "7.4.2" apply false
