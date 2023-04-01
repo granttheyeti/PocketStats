@@ -21,13 +21,18 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import androidx.wear.compose.foundation.rememberActiveFocusRequester
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
+import androidx.wear.compose.material.TimeText
 import app.pocketstats.R
 import app.pocketstats.presentation.theme.PocketStatsTheme
 import com.google.android.horologist.compose.rotaryinput.onRotaryInputAccumulated
@@ -54,6 +59,9 @@ fun WearApp(dataViewModel: DataViewModel) {
         val haptic = LocalHapticFeedback.current
 
         Scaffold(
+            timeText = {
+                TimeText()
+            },
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colors.background)
@@ -82,7 +90,9 @@ fun WearApp(dataViewModel: DataViewModel) {
                         .fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colors.primary,
-                    text = "$upState makes, $downState misses"
+                    fontSize = 72.sp,
+                    fontFamily = FontFamily(Font(R.font.bebasneue_regular, FontWeight.Normal)),
+                    text = "$upState/$downState"
                 )
                 AnimatedVisibility(upState + downState > 0) {
                     Text(
