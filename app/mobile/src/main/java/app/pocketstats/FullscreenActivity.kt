@@ -2,12 +2,14 @@ package app.pocketstats
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+private const val TAG = "MainActivity"
 
 class FullscreenActivity : ComponentActivity() {
 
@@ -16,6 +18,7 @@ class FullscreenActivity : ComponentActivity() {
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate Called")
         setContent {
             MyApp(dataViewModel)
         }
@@ -23,13 +26,36 @@ class FullscreenActivity : ComponentActivity() {
         hideSystemUI()
     }
 
+
+    override fun onStart() {
+        super.onStart()
+        Log.d(TAG, "onStart Called")
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        Log.d(TAG, "onRestart Called")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d(TAG, "onStop Called")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(TAG, "onDestroy Called")
+    }
+
     override fun onResume() {
         super.onResume()
+        Log.d(TAG, "onResume Called")
         dataViewModel.startTimer()
     }
 
     override fun onPause() {
         super.onPause()
+        Log.d(TAG, "onPause Called")
         dataViewModel.stopTimer()
     }
 

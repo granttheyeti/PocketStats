@@ -50,6 +50,7 @@ android {
 
 dependencies {
     implementation("androidx.core:core-ktx:1.9.0")
+    implementation("androidx.wear:wear-ongoing:1.0.0")
     implementation("com.google.android.horologist:horologist-compose-layout:0.3.2")
     implementation("androidx.compose.ui:ui:${rootProject.extra["compose_version"]}")
     implementation("androidx.wear.compose:compose-material:${rootProject.extra["wear_compose_version"]}")
